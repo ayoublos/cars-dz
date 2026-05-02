@@ -8,9 +8,11 @@ export default async function CarDetail({
 }) {
   const { id } = await params;
   const numericId = Number(id);
+  const data = await fetch("http://localhost:3001/api/cars-list");
+  const json = await data.json();
   if (!Number.isFinite(numericId)) notFound();
 
-  const car = getCarById(numericId);
+  const car = getCarById(numericId, json.cars);
   if (!car) notFound();
 
   return (

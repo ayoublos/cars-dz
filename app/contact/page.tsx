@@ -1,4 +1,5 @@
-export default function Contact() {
+export default async function Contact() {
+
   return (
     <div>
       <h1>Contact</h1>
