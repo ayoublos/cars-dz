@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Car } from "@/lib/cars";
+import { fetchCars } from "@/lib/supabase/cars-queries";
 
 function filterCars(cars: readonly Car[], q: string) {
   const needle = q.trim().toLowerCase();
@@ -38,10 +39,9 @@ export default async function CarsPage({
 }: {
   searchParams?: SearchParamsInput;
 }) {
-const data = await fetch("http://localhost:3001/api/cars-list");
-  const json = await data.json();
+const cars = await fetchCars();
   const q = await getQuery(searchParams);
-  const filtered = filterCars(json.cars, q);
+  const filtered = filterCars(cars, q);
 
   return (
     <div className="flex flex-1 justify-center bg-zinc-50 px-4 py-10 dark:bg-black">
@@ -51,11 +51,7 @@ const data = await fetch("http://localhost:3001/api/cars-list");
             <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
               Cars
             </h1>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              {q.trim()
-                ? `Results for “${q.trim()}”.`
-                : "Browse available listings."}
-            </p>
+          
           </div>
         </div>
 

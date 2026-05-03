@@ -1,10 +1,81 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import type { Car } from "@/lib/cars";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+
+function stringField(formData: FormData, key: string): string {
+  const v = formData.get(key);
+  return typeof v === "string" ? v : "";
+}
+
+function numberField(formData: FormData, key: string, fallback: number): number {
+  const v = formData.get(key);
+  if (typeof v !== "string" || v === "") return fallback;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+/** Fields collected from the form; database assigns `id` when persisting. */
+function carFromFormData(formData: FormData): Omit<Car, "id"> {
+  const id=Math.floor(Math.random() * 1000000);
+    return {
+    name: stringField(formData, "name"),
+    status: stringField(formData, "status"),
+    color: stringField(formData, "color"),
+    image: stringField(formData, "image"),
+    price: numberField(formData, "price", 0),
+    mileage: numberField(formData, "mileage", 0),
+    year: numberField(formData, "year", new Date().getFullYear()),
+    fuel: "petrol",
+    transmission: "manual",
+    engine: "",
+    doors: 4,
+    seats: 5,
+  };
+}
+
 const inputClassName =
   "mt-1 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-500 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400/30 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-zinc-500 dark:focus:ring-zinc-600/40";
 
 const labelClassName =
   "block text-sm font-medium text-zinc-700 dark:text-zinc-300";
 
+async function addCar(car: Omit<Car, "id">) {
+  const supabase = getSupabaseBrowserClient();
+  const { error } = await supabase
+    .from("cars")
+    .insert(car)
+    .select()
+    .single();
+
+  if (error) throw error;
+}
+
 export default function AddACar() {
+  const router = useRouter();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setErrorMessage(null);
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData(e.target as HTMLFormElement);
+      await addCar(carFromFormData(formData));
+      router.push("/cars");
+      router.refresh();
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Could not save the car. Try again.";
+      setErrorMessage(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="flex flex-1 justify-center bg-zinc-50 px-4 py-10 dark:bg-black">
       <div className="w-full max-w-2xl">
@@ -13,11 +84,24 @@ export default function AddACar() {
             Add a car
           </h1>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Fill in the details below. You can wire this form to Supabase later.
+            Saved to your Supabase <code className="text-zinc-700 dark:text-zinc-300">cars</code>{" "}
+            table (requires RLS policies for anon insert).
           </p>
         </header>
 
-        <form className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 sm:p-8">
+        {errorMessage ? (
+          <div
+            className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200"
+            role="alert"
+          >
+            {errorMessage}
+          </div>
+        ) : null}
+
+        <form
+          onSubmit={handleSubmit}
+          className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 sm:p-8"
+        >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label htmlFor="name" className={labelClassName}>
@@ -27,6 +111,7 @@ export default function AddACar() {
                 id="name"
                 type="text"
                 name="name"
+                required
                 placeholder="e.g. Renault Symbol"
                 className={inputClassName}
               />
@@ -111,15 +196,17 @@ export default function AddACar() {
           <div className="mt-8 flex flex-col-reverse gap-3 border-t border-zinc-200 pt-6 dark:border-zinc-800 sm:flex-row sm:justify-end">
             <button
               type="reset"
-              className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
+              disabled={isSubmitting}
+              className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
             >
               Clear
             </button>
             <button
               type="submit"
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950"
+              disabled={isSubmitting}
+              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-60 dark:focus-visible:ring-offset-zinc-950"
             >
-              Add car
+              {isSubmitting ? "Saving…" : "Add car"}
             </button>
           </div>
         </form>

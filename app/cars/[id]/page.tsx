@@ -1,5 +1,5 @@
-import { getCarById } from "@/lib/cars";
 import { notFound } from "next/navigation";
+import { fetchCarById } from "@/lib/supabase/cars-queries";
 
 export default async function CarDetail({
   params,
@@ -8,11 +8,9 @@ export default async function CarDetail({
 }) {
   const { id } = await params;
   const numericId = Number(id);
-  const data = await fetch("http://localhost:3001/api/cars-list");
-  const json = await data.json();
   if (!Number.isFinite(numericId)) notFound();
 
-  const car = getCarById(numericId, json.cars);
+  const car = await fetchCarById(numericId);
   if (!car) notFound();
 
   return (

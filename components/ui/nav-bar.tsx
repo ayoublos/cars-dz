@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   { href: "/contact", label: "Contact" },
   { href: "/about", label: "About" },
   { href: "/add-a-car", label: "Add a Car" },
+  { href: "/login", label: "Login" },
 ] as const;
 
 const NAV_LINK_CLASSNAME =
