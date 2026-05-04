@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "supabase": "supabase",
+    "db:login": "supabase login",
+    "db:link": "supabase link",
+    "db:init": "supabase init --yes",
+    "db:version": "supabase --version"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.1",
@@ -21,6 +26,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "supabase": "^2.98.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

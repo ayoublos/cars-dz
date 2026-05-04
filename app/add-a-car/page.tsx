@@ -19,8 +19,7 @@ function numberField(formData: FormData, key: string, fallback: number): number 
 
 /** Fields collected from the form; database assigns `id` when persisting. */
 function carFromFormData(formData: FormData): Omit<Car, "id"> {
-  const id=Math.floor(Math.random() * 1000000);
-    return {
+  return {
     name: stringField(formData, "name"),
     status: stringField(formData, "status"),
     color: stringField(formData, "color"),
@@ -69,7 +68,14 @@ export default function AddACar() {
       router.refresh();
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : "Could not save the car. Try again.";
+        err instanceof Error
+          ? err.message
+          : typeof err === "object" &&
+              err !== null &&
+              "message" in err &&
+              typeof (err as { message: unknown }).message === "string"
+            ? (err as { message: string }).message
+            : "Could not save the car. Try again.";
       setErrorMessage(message);
     } finally {
       setIsSubmitting(false);

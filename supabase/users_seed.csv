@@ -1,0 +1,4 @@
+id,email,full_name,role
+1,alice@example.com,Alice Benali,user
+2,bob@example.com,Bob Khelifi,user
+3,samira@example.com,Samira Hadj,admin
