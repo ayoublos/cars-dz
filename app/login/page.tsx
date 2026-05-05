@@ -1,6 +1,9 @@
 "use client";
-
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+
 
 const inputClassName =
   "mt-1 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-500 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400/30 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-zinc-500 dark:focus:ring-zinc-600/40";
@@ -8,10 +11,64 @@ const inputClassName =
 const labelClassName =
   "block text-sm font-medium text-zinc-700 dark:text-zinc-300";
 
+
+
+
 export default function LoginPage() {
-  const handleCredentialsSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const canSubmit = useMemo(() => {
+    return email.trim() !== "" && password !== "" && !isSubmitting;
+  }, [email, password, isSubmitting]);
+
+  const handleCredentialsSubmit = async (
+    e: React.FormEvent<HTMLFormElement>,
+  ) => {
     e.preventDefault();
-    // Wire to Supabase signInWithPassword when ready
+    setErrorMessage(null);
+    const nextEmail = email.trim();
+
+    if (!nextEmail) {
+      setErrorMessage("Email is required.");
+      return;
+    }
+    if (!password) {
+      setErrorMessage("Password is required.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email: nextEmail,
+        password,
+      });
+      if (error) {
+        setErrorMessage(error.message);
+        return;
+      }
+
+      router.push("/cars");
+      router.refresh();
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : typeof err === "object" &&
+              err !== null &&
+              "message" in err &&
+              typeof (err as { message: unknown }).message === "string"
+            ? (err as { message: string }).message
+            : "Login failed. Try again.";
+      setErrorMessage(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -27,6 +84,15 @@ export default function LoginPage() {
         </header>
 
         <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 sm:p-8">
+          {errorMessage ? (
+            <div
+              className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200"
+              role="alert"
+            >
+              {errorMessage}
+            </div>
+          ) : null}
+
           <form onSubmit={handleCredentialsSubmit} className="space-y-5">
             <div>
               <label htmlFor="email" className={labelClassName}>
@@ -40,6 +106,8 @@ export default function LoginPage() {
                 required
                 placeholder="you@example.com"
                 className={inputClassName}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div>
@@ -62,14 +130,17 @@ export default function LoginPage() {
                 required
                 placeholder="••••••••"
                 className={inputClassName}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
 
             <button
               type="submit"
+              disabled={!canSubmit}
               className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950"
             >
-              Sign in
+              {isSubmitting ? "Signing in…" : "Sign in"}
             </button>
           </form>
 
@@ -86,7 +157,23 @@ export default function LoginPage() {
 
           <button
             type="button"
+            disabled={isSubmitting}
             className="flex w-full items-center justify-center gap-3 rounded-md border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-800 transition-colors hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-900"
+            onClick={async () => {
+              try {
+                const supabase = getSupabaseBrowserClient();
+                await supabase.auth.signInWithOAuth({
+                  provider: "google",
+                  options: {
+                    redirectTo: `${window.location.origin}/auth/callback`,
+                  },
+                });
+              } catch (err) {
+                setErrorMessage(
+                  err instanceof Error ? err.message : "Google sign-in failed.",
+                );
+              }
+            }}
           >
             <GoogleMark className="h-5 w-5 shrink-0" aria-hidden />
             Continue with Google

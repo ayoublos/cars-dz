@@ -4,36 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Car } from "@/lib/cars";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-
-function stringField(formData: FormData, key: string): string {
-  const v = formData.get(key);
-  return typeof v === "string" ? v : "";
-}
-
-function numberField(formData: FormData, key: string, fallback: number): number {
-  const v = formData.get(key);
-  if (typeof v !== "string" || v === "") return fallback;
-  const n = Number(v);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-/** Fields collected from the form; database assigns `id` when persisting. */
-function carFromFormData(formData: FormData): Omit<Car, "id"> {
-  return {
-    name: stringField(formData, "name"),
-    status: stringField(formData, "status"),
-    color: stringField(formData, "color"),
-    image: stringField(formData, "image"),
-    price: numberField(formData, "price", 0),
-    mileage: numberField(formData, "mileage", 0),
-    year: numberField(formData, "year", new Date().getFullYear()),
-    fuel: "petrol",
-    transmission: "manual",
-    engine: "",
-    doors: 4,
-    seats: 5,
-  };
-}
+import { carFromFormData } from "@/lib/util/mapper";
 
 const inputClassName =
   "mt-1 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-500 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400/30 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-zinc-500 dark:focus:ring-zinc-600/40";

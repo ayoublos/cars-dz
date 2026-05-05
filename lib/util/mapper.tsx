@@ -1,0 +1,56 @@
+import { User } from "../supabase/users-queries";
+import { Car } from "../cars";
+
+
+export function UserFromFormData(formData: FormData): Omit<User, "id"> {
+    return {
+      email: stringField(formData, "email"),
+      password: stringField(formData, "password"),
+      role: "user",
+    };
+  }
+
+  export function stringField(formData: FormData, key: string): string {
+    const v = formData.get(key);
+    return typeof v === "string" ? v : "";
+  }
+  export function numberField(formData: FormData, key: string, fallback: number): number {
+    const v = formData.get(key);
+    if (typeof v !== "string" || v === "") return fallback;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  /** Fields collected from the form; database assigns `id` when persisting. */
+export function carFromFormData(formData: FormData): Omit<Car, "id"> {
+    return {
+      name: stringField(formData, "name"),
+      status: stringField(formData, "status"),
+      color: stringField(formData, "color"),
+      image: stringField(formData, "image"),
+      price: numberField(formData, "price", 0),
+      mileage: numberField(formData, "mileage", 0),
+      year: numberField(formData, "year", new Date().getFullYear()),
+      fuel: "petrol",
+      transmission: "manual",
+      engine: "",
+      doors: 4,
+      seats: 5,
+    };
+  }
+  export function userFromFormData(formData: FormData): Omit<User, "id"> {
+    return {
+      email: stringField(formData, "email"),
+      password: stringField(formData, "password"),
+      role: "user",
+    };
+  }
+
+  export function rowToUser(row: User): User {
+    return {
+      id: "1",
+      email: row.email,
+      password: row.password,
+      role: row.role,
+    };
+  }
