@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { Car } from "@/lib/cars";
+import type { Lang } from "@/lib/i18n";
+import { t } from "@/lib/i18n";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { uploadCarListingImage } from "@/lib/supabase/car-images";
 import { carFromFormData } from "@/lib/util/mapper";
@@ -26,6 +28,7 @@ export default function AddACar() {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
   const extraPhotosInputRef = useRef<HTMLInputElement | null>(null);
+  const [lang, setLang] = useState<Lang>("en");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [selectedImagePreviewUrl, setSelectedImagePreviewUrl] = useState<
     string | null
@@ -39,6 +42,15 @@ export default function AddACar() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const raw = document.cookie
+      .split(";")
+      .map((s) => s.trim())
+      .find((s) => s.startsWith("lang="))
+      ?.split("=")[1];
+    setLang(raw === "ar" || raw === "fr" || raw === "en" ? raw : "en");
+  }, []);
 
   useEffect(() => {
     if (!selectedImage) {
@@ -176,11 +188,10 @@ export default function AddACar() {
       <div className="w-full max-w-2xl">
         <header className="mb-8">
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-            Add a car
+            {t.addCar.title[lang]}
           </h1>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Saved to your Supabase <code className="text-zinc-700 dark:text-zinc-300">cars</code>{" "}
-            table (requires RLS policies for anon insert).
+            {t.addCar.subtitle[lang]}
           </p>
         </header>
 
@@ -202,7 +213,7 @@ export default function AddACar() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
               <div>
                 <label htmlFor="carPhoto" className={labelClassName}>
-                  Car photo
+                  {t.addCar.carPhoto[lang]}
                 </label>
                 <input
                   id="carPhoto"
@@ -221,7 +232,7 @@ export default function AddACar() {
                   </div>
                 ) : null}
                 <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
-                  Main photo becomes the listing cover after save. Use Auto-fill for Gemini hints.
+                  {t.addCar.coverHint[lang]}
                 </p>
               </div>
               <button
@@ -230,7 +241,7 @@ export default function AddACar() {
                 disabled={!selectedImage || isAnalyzing || isSubmitting}
                 className="h-10 shrink-0 rounded-md bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
               >
-                {isAnalyzing ? "Analyzing…" : "Auto-fill"}
+                {isAnalyzing ? t.addCar.analyzing[lang] : t.addCar.autofill[lang]}
               </button>
             </div>
 
@@ -253,11 +264,11 @@ export default function AddACar() {
                   disabled={isSubmitting}
                   className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
                 >
-                  Add additional photos
+                  {t.addCar.additionalPhotos[lang]}
                 </button>
                 <span className="text-xs text-zinc-500 dark:text-zinc-500">
                   {extraPhotos.length === 0
-                    ? "Optional — shown on the car detail page after save."
+                    ? t.addCar.additionalHint[lang]
                     : `${extraPhotos.length} extra`}
                 </span>
               </div>
@@ -292,7 +303,7 @@ export default function AddACar() {
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <div className="sm:col-span-2">
                   <label htmlFor="locationText" className={labelClassName}>
-                    Location (optional)
+                    {t.addCar.location[lang]}
                   </label>
                   <input
                     id="locationText"
@@ -305,7 +316,7 @@ export default function AddACar() {
                 </div>
                 <div className="sm:col-span-2">
                   <label htmlFor="listingNotes" className={labelClassName}>
-                    Notes (optional)
+                    {t.addCar.notes[lang]}
                   </label>
                   <textarea
                     id="listingNotes"
@@ -321,7 +332,7 @@ export default function AddACar() {
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label htmlFor="name" className={labelClassName}>
-                Name
+                {t.addCar.name[lang]}
               </label>
               <input
                 id="name"
@@ -334,7 +345,7 @@ export default function AddACar() {
             </div>
             <div>
               <label htmlFor="status" className={labelClassName}>
-                Status
+                {t.addCar.status[lang]}
               </label>
               <input
                 id="status"
@@ -346,7 +357,7 @@ export default function AddACar() {
             </div>
             <div>
               <label htmlFor="color" className={labelClassName}>
-                Color
+                {t.addCar.color[lang]}
               </label>
               <input
                 id="color"
@@ -358,7 +369,7 @@ export default function AddACar() {
             </div>
             <div>
               <label htmlFor="price" className={labelClassName}>
-                Price (DZD)
+                {t.addCar.price[lang]}
               </label>
               <input
                 id="price"
@@ -371,7 +382,7 @@ export default function AddACar() {
             </div>
             <div>
               <label htmlFor="mileage" className={labelClassName}>
-                Mileage (km)
+                {t.addCar.mileage[lang]}
               </label>
               <input
                 id="mileage"
@@ -384,7 +395,7 @@ export default function AddACar() {
             </div>
             <div>
               <label htmlFor="year" className={labelClassName}>
-                Year
+                {t.addCar.year[lang]}
               </label>
               <input
                 id="year"
@@ -397,7 +408,7 @@ export default function AddACar() {
             </div>
             <div>
               <label htmlFor="fuel" className={labelClassName}>
-                Fuel
+                {t.addCar.fuel[lang]}
               </label>
               <input
                 id="fuel"
@@ -409,7 +420,7 @@ export default function AddACar() {
             </div>
             <div>
               <label htmlFor="transmission" className={labelClassName}>
-                Transmission
+                {t.addCar.transmission[lang]}
               </label>
               <input
                 id="transmission"
@@ -421,7 +432,7 @@ export default function AddACar() {
             </div>
             <div className="sm:col-span-2">
               <label htmlFor="engine" className={labelClassName}>
-                Engine
+                {t.addCar.engine[lang]}
               </label>
               <input
                 id="engine"
@@ -433,7 +444,7 @@ export default function AddACar() {
             </div>
             <div>
               <label htmlFor="doors" className={labelClassName}>
-                Doors
+                {t.addCar.doors[lang]}
               </label>
               <input
                 id="doors"
@@ -446,7 +457,7 @@ export default function AddACar() {
             </div>
             <div>
               <label htmlFor="seats" className={labelClassName}>
-                Seats
+                {t.addCar.seats[lang]}
               </label>
               <input
                 id="seats"
@@ -465,14 +476,14 @@ export default function AddACar() {
               disabled={isSubmitting}
               className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
             >
-              Clear
+              {t.addCar.clear[lang]}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-60 dark:focus-visible:ring-offset-zinc-950"
             >
-              {isSubmitting ? "Saving…" : "Add car"}
+              {isSubmitting ? t.addCar.saving[lang] : t.addCar.add[lang]}
             </button>
           </div>
         </form>

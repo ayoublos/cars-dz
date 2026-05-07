@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { carListingImageSrc } from "@/lib/cars";
+import { t } from "@/lib/i18n";
+import { getLang } from "@/lib/i18n/server";
 import { fetchCarById } from "@/lib/supabase/cars-queries";
 
 function pillClasses(variant: "status" | "spec" = "spec") {
@@ -18,6 +20,7 @@ export default async function CarDetail({
 }: {
   params: Promise<{ id: string }> | { id: string };
 }) {
+  const lang = await getLang();
   const { id } = await params;
   const numericId = Number(id);
   if (!Number.isFinite(numericId)) notFound();
@@ -53,7 +56,7 @@ export default async function CarDetail({
         {car.gallery.length > 0 ? (
           <div className="border-t border-zinc-200 bg-zinc-50 px-4 py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
             <p className="mb-3 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-              More photos
+              {t.carDetails.morePhotos[lang]}
             </p>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {car.gallery.map((src, i) => (
@@ -85,16 +88,16 @@ export default async function CarDetail({
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className={specCardClasses()}>
               <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                Price
+                {t.carDetails.price[lang]}
               </p>
               <p className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
                 {car.price.toLocaleString()}{" "}
                 <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                  DZD
+                  {t.carDetails.dzd[lang]}
                 </span>
               </p>
               <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                Status:{" "}
+                {t.carDetails.status[lang]}:{" "}
                 <span className="font-medium text-zinc-900 dark:text-zinc-200">
                   {car.status}
                 </span>
@@ -103,16 +106,16 @@ export default async function CarDetail({
 
             <div className={specCardClasses()}>
               <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                Mileage
+                {t.carDetails.mileage[lang]}
               </p>
               <p className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
                 {car.mileage.toLocaleString()}{" "}
                 <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                  km
+                  {t.carDetails.km[lang]}
                 </span>
               </p>
               <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                Year:{" "}
+                {t.carDetails.year[lang]}:{" "}
                 <span className="font-medium text-zinc-900 dark:text-zinc-200">
                   {car.year}
                 </span>
@@ -121,25 +124,29 @@ export default async function CarDetail({
 
             <div className={specCardClasses()}>
               <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                Powertrain
+                {t.carDetails.powertrain[lang]}
               </p>
               <dl className="mt-3 space-y-2 text-sm">
                 <div className="flex items-center justify-between gap-3">
-                  <dt className="text-zinc-600 dark:text-zinc-400">Fuel</dt>
+                  <dt className="text-zinc-600 dark:text-zinc-400">
+                    {t.carDetails.fuel[lang]}
+                  </dt>
                   <dd className="font-medium text-zinc-900 dark:text-zinc-200">
                     {car.fuel || "—"}
                   </dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-zinc-600 dark:text-zinc-400">
-                    Transmission
+                    {t.carDetails.transmission[lang]}
                   </dt>
                   <dd className="font-medium text-zinc-900 dark:text-zinc-200">
                     {car.transmission || "—"}
                   </dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <dt className="text-zinc-600 dark:text-zinc-400">Engine</dt>
+                  <dt className="text-zinc-600 dark:text-zinc-400">
+                    {t.carDetails.engine[lang]}
+                  </dt>
                   <dd className="font-medium text-zinc-900 dark:text-zinc-200">
                     {car.engine || "—"}
                   </dd>
@@ -149,23 +156,29 @@ export default async function CarDetail({
 
             <div className={specCardClasses()}>
               <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                Body
+                {t.carDetails.body[lang]}
               </p>
               <dl className="mt-3 space-y-2 text-sm">
                 <div className="flex items-center justify-between gap-3">
-                  <dt className="text-zinc-600 dark:text-zinc-400">Color</dt>
+                  <dt className="text-zinc-600 dark:text-zinc-400">
+                    {t.carDetails.color[lang]}
+                  </dt>
                   <dd className="font-medium text-zinc-900 dark:text-zinc-200">
                     {car.color || "—"}
                   </dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <dt className="text-zinc-600 dark:text-zinc-400">Doors</dt>
+                  <dt className="text-zinc-600 dark:text-zinc-400">
+                    {t.carDetails.doors[lang]}
+                  </dt>
                   <dd className="font-medium text-zinc-900 dark:text-zinc-200">
                     {car.doors}
                   </dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <dt className="text-zinc-600 dark:text-zinc-400">Seats</dt>
+                  <dt className="text-zinc-600 dark:text-zinc-400">
+                    {t.carDetails.seats[lang]}
+                  </dt>
                   <dd className="font-medium text-zinc-900 dark:text-zinc-200">
                     {car.seats}
                   </dd>

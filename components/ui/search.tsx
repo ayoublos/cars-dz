@@ -3,7 +3,13 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 
-function SearchForm() {
+function SearchForm({
+  placeholder,
+  buttonLabel,
+}: {
+  placeholder: string;
+  buttonLabel: string;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
@@ -33,7 +39,7 @@ function SearchForm() {
           name="q"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search cars…"
+          placeholder={placeholder}
           autoComplete="off"
           className="min-w-0 flex-1 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-500 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-400/30 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-zinc-500 dark:focus:ring-zinc-600/40"
         />
@@ -41,14 +47,20 @@ function SearchForm() {
           type="submit"
           className="shrink-0 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950"
         >
-          Search
+          {buttonLabel}
         </button>
       </form>
     </div>
   );
 }
 
-export default function Search() {
+export default function Search({
+  placeholder = "Search cars…",
+  buttonLabel = "Search",
+}: {
+  placeholder?: string;
+  buttonLabel?: string;
+}) {
   return (
     <Suspense
       fallback={
@@ -57,7 +69,7 @@ export default function Search() {
         </div>
       }
     >
-      <SearchForm />
+      <SearchForm placeholder={placeholder} buttonLabel={buttonLabel} />
     </Suspense>
   );
 }
