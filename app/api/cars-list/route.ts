@@ -18,6 +18,7 @@ export async function POST(request: Request) {
       status,
       color,
       image,
+      gallery,
       price,
       mileage,
       year,
@@ -27,11 +28,15 @@ export async function POST(request: Request) {
       doors,
       seats,
     } = body;
+    const galleryUrls = Array.isArray(gallery)
+      ? gallery.filter((u: unknown): u is string => typeof u === "string")
+      : [];
     const car = await insertCar({
       name,
       status,
       color,
       image,
+      gallery: galleryUrls,
       price: Number(price),
       mileage: Number(mileage),
       year: Number(year),

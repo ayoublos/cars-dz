@@ -1,4 +1,4 @@
-import type { Car } from "@/lib/cars";
+import { parseCarGallery, type Car } from "@/lib/cars";
 import { createSupabaseServerClient } from "./server";
 
 type CarRow = {
@@ -7,6 +7,7 @@ type CarRow = {
   status: string;
   color: string;
   image: string;
+  gallery?: unknown;
   price: number | string;
   mileage: number | string;
   year: number | string;
@@ -24,6 +25,7 @@ function rowToCar(row: CarRow): Car {
     status: row.status,
     color: row.color,
     image: row.image,
+    gallery: parseCarGallery(row.gallery),
     price: Number(row.price),
     mileage: Number(row.mileage),
     year: Number(row.year),
@@ -66,8 +68,7 @@ export async function insertCar(payload: Omit<Car, "id">): Promise<Car> {
     .insert(payload)
     .select()
     .single();
-console.log("data", data);
-console.log("error", error);
+
   if (error) throw error;
   return rowToCar(data as CarRow);
 }

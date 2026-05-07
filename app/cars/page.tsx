@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Car } from "@/lib/cars";
+import { carListingImageSrc, type Car } from "@/lib/cars";
 import { fetchCars } from "@/lib/supabase/cars-queries";
 
 function filterCars(cars: readonly Car[], q: string) {
@@ -69,7 +69,7 @@ const cars = await fetchCars();
               >
                 <div className="aspect-[16/10] w-full bg-zinc-100 dark:bg-zinc-900">
                   <img
-                    src={car.image}
+                    src={carListingImageSrc(car.image)}
                     alt={car.name}
                     className="h-full w-full object-cover"
                     loading="lazy"

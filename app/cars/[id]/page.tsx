@@ -1,5 +1,17 @@
 import { notFound } from "next/navigation";
+import { carListingImageSrc } from "@/lib/cars";
 import { fetchCarById } from "@/lib/supabase/cars-queries";
+
+function pillClasses(variant: "status" | "spec" = "spec") {
+  if (variant === "status") {
+    return "inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-medium text-blue-800 dark:border-blue-900/60 dark:bg-blue-950/30 dark:text-blue-200";
+  }
+  return "inline-flex items-center rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-medium text-zinc-700 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200";
+}
+
+function specCardClasses() {
+  return "rounded-2xl border border-zinc-200 bg-gradient-to-b from-white to-zinc-50 p-4 text-zinc-800 shadow-sm dark:border-zinc-800 dark:from-zinc-950 dark:to-zinc-950 dark:text-zinc-200";
+}
 
 export default async function CarDetail({
   params,
@@ -16,54 +28,149 @@ export default async function CarDetail({
   return (
     <div className="flex flex-1 items-start justify-center bg-zinc-50 px-4 py-10 dark:bg-black">
       <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="aspect-[16/9] w-full bg-zinc-100 dark:bg-zinc-900">
+        <div className="relative aspect-[16/9] w-full bg-zinc-100 dark:bg-zinc-900">
           <img
-            src={car.image}
+            src={carListingImageSrc(car.image)}
             alt={car.name}
             className="h-full w-full object-cover"
             loading="lazy"
             referrerPolicy="no-referrer"
           />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/0 to-black/0" />
+          <div className="absolute bottom-4 left-4 right-4 flex flex-wrap items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-medium uppercase tracking-wide text-white/80">
+                {car.year} • {car.fuel} • {car.transmission}
+              </p>
+              <h1 className="mt-1 truncate text-2xl font-semibold tracking-tight text-white">
+                {car.name}
+              </h1>
+            </div>
+            <div className={pillClasses("status")}>{car.status}</div>
+          </div>
         </div>
 
+        {car.gallery.length > 0 ? (
+          <div className="border-t border-zinc-200 bg-zinc-50 px-4 py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+            <p className="mb-3 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+              More photos
+            </p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {car.gallery.map((src, i) => (
+                <div
+                  key={`${src}-${i}`}
+                  className="aspect-[4/3] overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-950"
+                >
+                  <img
+                    src={src}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
         <div className="p-6">
-          <div className="flex items-start justify-between gap-4">
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-              {car.name}
-            </h1>
-            <span className="rounded-full bg-zinc-100 px-3 py-1 text-sm font-medium text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
-              {car.status}
-            </span>
+          <div className="flex flex-wrap gap-2">
+            <span className={pillClasses()}>{car.color || "Color: —"}</span>
+            <span className={pillClasses()}>{car.engine || "Engine: —"}</span>
+            <span className={pillClasses()}>{car.doors} doors</span>
+            <span className={pillClasses()}>{car.seats} seats</span>
           </div>
 
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            {car.year} • {car.fuel} • {car.transmission} • {car.engine}
-          </p>
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className={specCardClasses()}>
+              <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                Price
+              </p>
+              <p className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                {car.price.toLocaleString()}{" "}
+                <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                  DZD
+                </span>
+              </p>
+              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                Status:{" "}
+                <span className="font-medium text-zinc-900 dark:text-zinc-200">
+                  {car.status}
+                </span>
+              </p>
+            </div>
 
-          <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-            <div className="rounded-xl bg-zinc-50 p-3 text-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300">
-              <span className="text-zinc-500 dark:text-zinc-400">Price</span>
-              <div className="font-semibold text-zinc-900 dark:text-zinc-100">
-                {car.price.toLocaleString()} DZD
-              </div>
+            <div className={specCardClasses()}>
+              <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                Mileage
+              </p>
+              <p className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                {car.mileage.toLocaleString()}{" "}
+                <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                  km
+                </span>
+              </p>
+              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                Year:{" "}
+                <span className="font-medium text-zinc-900 dark:text-zinc-200">
+                  {car.year}
+                </span>
+              </p>
             </div>
-            <div className="rounded-xl bg-zinc-50 p-3 text-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300">
-              <span className="text-zinc-500 dark:text-zinc-400">Mileage</span>
-              <div className="font-semibold text-zinc-900 dark:text-zinc-100">
-                {car.mileage.toLocaleString()} km
-              </div>
+
+            <div className={specCardClasses()}>
+              <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                Powertrain
+              </p>
+              <dl className="mt-3 space-y-2 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-zinc-600 dark:text-zinc-400">Fuel</dt>
+                  <dd className="font-medium text-zinc-900 dark:text-zinc-200">
+                    {car.fuel || "—"}
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-zinc-600 dark:text-zinc-400">
+                    Transmission
+                  </dt>
+                  <dd className="font-medium text-zinc-900 dark:text-zinc-200">
+                    {car.transmission || "—"}
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-zinc-600 dark:text-zinc-400">Engine</dt>
+                  <dd className="font-medium text-zinc-900 dark:text-zinc-200">
+                    {car.engine || "—"}
+                  </dd>
+                </div>
+              </dl>
             </div>
-            <div className="rounded-xl bg-zinc-50 p-3 text-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300">
-              <span className="text-zinc-500 dark:text-zinc-400">Color</span>
-              <div className="font-semibold text-zinc-900 dark:text-zinc-100">
-                {car.color}
-              </div>
-            </div>
-            <div className="rounded-xl bg-zinc-50 p-3 text-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300">
-              <span className="text-zinc-500 dark:text-zinc-400">Seats</span>
-              <div className="font-semibold text-zinc-900 dark:text-zinc-100">
-                {car.seats}
-              </div>
+
+            <div className={specCardClasses()}>
+              <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                Body
+              </p>
+              <dl className="mt-3 space-y-2 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-zinc-600 dark:text-zinc-400">Color</dt>
+                  <dd className="font-medium text-zinc-900 dark:text-zinc-200">
+                    {car.color || "—"}
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-zinc-600 dark:text-zinc-400">Doors</dt>
+                  <dd className="font-medium text-zinc-900 dark:text-zinc-200">
+                    {car.doors}
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-zinc-600 dark:text-zinc-400">Seats</dt>
+                  <dd className="font-medium text-zinc-900 dark:text-zinc-200">
+                    {car.seats}
+                  </dd>
+                </div>
+              </dl>
             </div>
           </div>
         </div>

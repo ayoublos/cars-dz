@@ -28,14 +28,15 @@ export function carFromFormData(formData: FormData): Omit<Car, "id"> {
       status: stringField(formData, "status"),
       color: stringField(formData, "color"),
       image: stringField(formData, "image"),
+      gallery: [],
       price: numberField(formData, "price", 0),
       mileage: numberField(formData, "mileage", 0),
       year: numberField(formData, "year", new Date().getFullYear()),
-      fuel: "petrol",
-      transmission: "manual",
-      engine: "",
-      doors: 4,
-      seats: 5,
+      fuel: stringField(formData, "fuel"),
+      transmission: stringField(formData, "transmission"),
+      engine: stringField(formData, "engine"),
+      doors: numberField(formData, "doors", 4),
+      seats: numberField(formData, "seats", 5),
     };
   }
   export function userFromFormData(formData: FormData): Omit<User, "id"> {

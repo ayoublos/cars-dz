@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Car } from "@/lib/cars";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { uploadCarListingImage } from "@/lib/supabase/car-images";
 import { carFromFormData } from "@/lib/util/mapper";
 
 const inputClassName =
@@ -12,21 +13,121 @@ const inputClassName =
 const labelClassName =
   "block text-sm font-medium text-zinc-700 dark:text-zinc-300";
 
-async function addCar(car: Omit<Car, "id">) {
+async function insertCarRow(car: Omit<Car, "id">) {
   const supabase = getSupabaseBrowserClient();
-  const { error } = await supabase
-    .from("cars")
-    .insert(car)
-    .select()
-    .single();
+  const { error } = await supabase.from("cars").insert(car).select().single();
 
   if (error) throw error;
 }
 
+type ExtraPhoto = { id: string; file: File };
+
 export default function AddACar() {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const extraPhotosInputRef = useRef<HTMLInputElement | null>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [selectedImagePreviewUrl, setSelectedImagePreviewUrl] = useState<
+    string | null
+  >(null);
+  const [extraPhotos, setExtraPhotos] = useState<ExtraPhoto[]>([]);
+  const [extraPhotoPreviewUrls, setExtraPhotoPreviewUrls] = useState<
+    Record<string, string>
+  >({});
+  const [locationText, setLocationText] = useState("");
+  const [listingNotes, setListingNotes] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!selectedImage) {
+      setSelectedImagePreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(selectedImage);
+    setSelectedImagePreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [selectedImage]);
+
+  useEffect(() => {
+    const map: Record<string, string> = {};
+    for (const { id, file } of extraPhotos) {
+      map[id] = URL.createObjectURL(file);
+    }
+    setExtraPhotoPreviewUrls(map);
+    return () => {
+      Object.values(map).forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [extraPhotos]);
+
+  const addExtraPhotos = (files: FileList | null) => {
+    if (!files?.length) return;
+    const next: ExtraPhoto[] = Array.from(files).map((file) => ({
+      id: crypto.randomUUID(),
+      file,
+    }));
+    setExtraPhotos((prev) => [...prev, ...next]);
+  };
+
+  const removeExtraPhoto = (id: string) => {
+    setExtraPhotos((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const setField = (name: string, value: string) => {
+    const form = formRef.current;
+    if (!form) return;
+    const el = form.elements.namedItem(name);
+    if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+      el.value = value;
+    }
+  };
+
+  const analyzePhoto = async () => {
+    if (!selectedImage) return;
+    setErrorMessage(null);
+    setIsAnalyzing(true);
+    try {
+      const fd = new FormData();
+      fd.set("image", selectedImage);
+      const res = await fetch("/api/car-photo", { method: "POST", body: fd });
+      const data = (await res.json()) as Record<string, unknown>;
+
+      if (!res.ok) {
+        throw new Error(
+          typeof data.error === "string" ? data.error : "Analysis failed.",
+        );
+      }
+
+      if (typeof data.location === "string") setLocationText(data.location);
+      if (typeof data.notes === "string") setListingNotes(data.notes);
+
+      const str = (k: string) =>
+        typeof data[k] === "string" ? (data[k] as string) : "";
+      const num = (k: string) =>
+        typeof data[k] === "number" && Number.isFinite(data[k] as number)
+          ? String(data[k])
+          : "";
+
+      if (str("name")) setField("name", str("name"));
+      if (str("status")) setField("status", str("status"));
+      if (str("color")) setField("color", str("color"));
+      if (num("year")) setField("year", num("year"));
+      if (str("fuel")) setField("fuel", str("fuel"));
+      if (str("transmission")) setField("transmission", str("transmission"));
+      if (str("engine")) setField("engine", str("engine"));
+      if (num("doors")) setField("doors", num("doors"));
+      if (num("seats")) setField("seats", num("seats"));
+      if (num("price_dzd")) setField("price", num("price_dzd"));
+      if (num("mileage_km")) setField("mileage", num("mileage_km"));
+    } catch (err: unknown) {
+      setErrorMessage(
+        err instanceof Error ? err.message : "Could not analyze the photo.",
+      );
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -34,7 +135,24 @@ export default function AddACar() {
     setIsSubmitting(true);
     try {
       const formData = new FormData(e.target as HTMLFormElement);
-      await addCar(carFromFormData(formData));
+      const supabase = getSupabaseBrowserClient();
+      const base = carFromFormData(formData);
+
+      let coverUrl = base.image.trim();
+      if (selectedImage) {
+        coverUrl = await uploadCarListingImage(supabase, selectedImage);
+      }
+
+      const galleryUrls: string[] = [];
+      for (const { file } of extraPhotos) {
+        galleryUrls.push(await uploadCarListingImage(supabase, file));
+      }
+
+      await insertCarRow({
+        ...base,
+        image: coverUrl,
+        gallery: galleryUrls,
+      });
       router.push("/cars");
       router.refresh();
     } catch (err: unknown) {
@@ -76,9 +194,130 @@ export default function AddACar() {
         ) : null}
 
         <form
+          ref={formRef}
           onSubmit={handleSubmit}
           className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 sm:p-8"
         >
+          <div className="mb-6 rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/30">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+              <div>
+                <label htmlFor="carPhoto" className={labelClassName}>
+                  Car photo
+                </label>
+                <input
+                  id="carPhoto"
+                  type="file"
+                  accept="image/*"
+                  className={inputClassName}
+                  onChange={(e) => setSelectedImage(e.target.files?.[0] ?? null)}
+                />
+                {selectedImagePreviewUrl ? (
+                  <div className="mt-3 overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+                    <img
+                      src={selectedImagePreviewUrl}
+                      alt="Selected car"
+                      className="h-36 w-full object-cover"
+                    />
+                  </div>
+                ) : null}
+                <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
+                  Main photo becomes the listing cover after save. Use Auto-fill for Gemini hints.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={analyzePhoto}
+                disabled={!selectedImage || isAnalyzing || isSubmitting}
+                className="h-10 shrink-0 rounded-md bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+              >
+                {isAnalyzing ? "Analyzing…" : "Auto-fill"}
+              </button>
+            </div>
+
+            <div className="mt-5 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+              <div className="flex flex-wrap items-center gap-3">
+                <input
+                  ref={extraPhotosInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    addExtraPhotos(e.target.files);
+                    e.target.value = "";
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => extraPhotosInputRef.current?.click()}
+                  disabled={isSubmitting}
+                  className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                >
+                  Add additional photos
+                </button>
+                <span className="text-xs text-zinc-500 dark:text-zinc-500">
+                  {extraPhotos.length === 0
+                    ? "Optional — shown on the car detail page after save."
+                    : `${extraPhotos.length} extra`}
+                </span>
+              </div>
+              {extraPhotos.length > 0 ? (
+                <ul className="mt-3 flex flex-wrap gap-2">
+                  {extraPhotos.map(({ id }) => {
+                    const url = extraPhotoPreviewUrls[id];
+                    if (!url) return null;
+                    return (
+                      <li key={id} className="relative">
+                        <img
+                          src={url}
+                          alt=""
+                          className="h-20 w-20 rounded-md border border-zinc-200 object-cover dark:border-zinc-700"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeExtraPhoto(id)}
+                          disabled={isSubmitting}
+                          className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full border border-zinc-300 bg-white text-xs font-medium text-zinc-600 shadow-sm hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-300"
+                          aria-label="Remove photo"
+                        >
+                          ×
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : null}
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <label htmlFor="locationText" className={labelClassName}>
+                    Location (optional)
+                  </label>
+                  <input
+                    id="locationText"
+                    type="text"
+                    value={locationText}
+                    onChange={(e) => setLocationText(e.target.value)}
+                    placeholder="e.g. Algiers"
+                    className={inputClassName}
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label htmlFor="listingNotes" className={labelClassName}>
+                    Notes (optional)
+                  </label>
+                  <textarea
+                    id="listingNotes"
+                    rows={2}
+                    value={listingNotes}
+                    onChange={(e) => setListingNotes(e.target.value)}
+                    className={inputClassName}
+                  />
+                </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label htmlFor="name" className={labelClassName}>
@@ -114,18 +353,6 @@ export default function AddACar() {
                 type="text"
                 name="color"
                 placeholder="e.g. silver"
-                className={inputClassName}
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <label htmlFor="image" className={labelClassName}>
-                Image URL
-              </label>
-              <input
-                id="image"
-                type="url"
-                name="image"
-                placeholder="https://…"
                 className={inputClassName}
               />
             </div>
@@ -165,6 +392,68 @@ export default function AddACar() {
                 name="year"
                 inputMode="numeric"
                 placeholder="2020"
+                className={inputClassName}
+              />
+            </div>
+            <div>
+              <label htmlFor="fuel" className={labelClassName}>
+                Fuel
+              </label>
+              <input
+                id="fuel"
+                type="text"
+                name="fuel"
+                placeholder="petrol"
+                className={inputClassName}
+              />
+            </div>
+            <div>
+              <label htmlFor="transmission" className={labelClassName}>
+                Transmission
+              </label>
+              <input
+                id="transmission"
+                type="text"
+                name="transmission"
+                placeholder="manual"
+                className={inputClassName}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label htmlFor="engine" className={labelClassName}>
+                Engine
+              </label>
+              <input
+                id="engine"
+                type="text"
+                name="engine"
+                placeholder="e.g. 1.6L"
+                className={inputClassName}
+              />
+            </div>
+            <div>
+              <label htmlFor="doors" className={labelClassName}>
+                Doors
+              </label>
+              <input
+                id="doors"
+                type="text"
+                name="doors"
+                inputMode="numeric"
+                placeholder="4"
+                className={inputClassName}
+              />
+            </div>
+            <div>
+              <label htmlFor="seats" className={labelClassName}>
+                Seats
+              </label>
+              <input
+                id="seats"
+                type="text"
+                name="seats"
+                inputMode="numeric"
+                placeholder="5"
                 className={inputClassName}
               />
             </div>

@@ -14,10 +14,13 @@
     "db:version": "supabase --version"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.68",
     "@supabase/supabase-js": "^2.105.1",
+    "ai": "^6.0.175",
     "next": "16.2.4",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
