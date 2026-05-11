@@ -1,8 +1,8 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-
-type Lang = "en" | "fr" | "ar";
+import type { Lang } from "@/lib/i18n";
+import { LANG_CHANGE_EVENT } from "@/lib/i18n";
 
 export default function LanguageSelect({
   value,
@@ -18,6 +18,10 @@ export default function LanguageSelect({
   const onChange = (next: Lang) => {
     // Persist for server components too.
     document.cookie = `lang=${next}; path=/; max-age=31536000; samesite=lax`;
+
+    window.dispatchEvent(
+      new CustomEvent(LANG_CHANGE_EVENT, { detail: { lang: next } }),
+    );
 
     const params = new URLSearchParams(searchParams?.toString());
     params.set("lang", next);

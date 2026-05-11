@@ -5,9 +5,9 @@ import { getLang } from "@/lib/i18n/server";
 
 const NAV_ITEMS = [
   { href: "/", key: "home" },
+  { href: "/add-a-car", key: "addCar" },
   { href: "/contact", key: "contact" },
   { href: "/about", key: "about" },
-  { href: "/add-a-car", key: "addCar" },
   { href: "/login", key: "login" },
 ] as const;
 

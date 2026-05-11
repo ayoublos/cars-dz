@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { Car } from "@/lib/cars";
 import type { Lang } from "@/lib/i18n";
-import { t } from "@/lib/i18n";
+import { LANG_CHANGE_EVENT, t } from "@/lib/i18n";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { uploadCarListingImage } from "@/lib/supabase/car-images";
 import { carFromFormData } from "@/lib/util/mapper";
@@ -25,6 +25,7 @@ async function insertCarRow(car: Omit<Car, "id">) {
 type ExtraPhoto = { id: string; file: File };
 
 export default function AddACar() {
+  const MAX_EXTRA_PHOTOS = 3;
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
   const extraPhotosInputRef = useRef<HTMLInputElement | null>(null);
@@ -42,14 +43,37 @@ export default function AddACar() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
 
   useEffect(() => {
-    const raw = document.cookie
-      .split(";")
-      .map((s) => s.trim())
-      .find((s) => s.startsWith("lang="))
-      ?.split("=")[1];
-    setLang(raw === "ar" || raw === "fr" || raw === "en" ? raw : "en");
+    function readLangFromBrowser(): Lang {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get("lang");
+      if (q === "ar" || q === "fr" || q === "en") return q;
+      const raw = document.cookie
+        .split(";")
+        .map((s) => s.trim())
+        .find((s) => s.startsWith("lang="))
+        ?.split("=")[1];
+      if (raw === "ar" || raw === "fr" || raw === "en") return raw;
+      return "en";
+    }
+
+    const onLangPicked = (e: Event) => {
+      const ce = e as CustomEvent<{ lang?: Lang }>;
+      const next = ce.detail?.lang;
+      if (next === "ar" || next === "fr" || next === "en") setLang(next);
+    };
+
+    const onPopState = () => setLang(readLangFromBrowser());
+
+    setLang(readLangFromBrowser());
+    window.addEventListener(LANG_CHANGE_EVENT, onLangPicked);
+    window.addEventListener("popstate", onPopState);
+    return () => {
+      window.removeEventListener(LANG_CHANGE_EVENT, onLangPicked);
+      window.removeEventListener("popstate", onPopState);
+    };
   }, []);
 
   useEffect(() => {
@@ -75,15 +99,60 @@ export default function AddACar() {
 
   const addExtraPhotos = (files: FileList | null) => {
     if (!files?.length) return;
-    const next: ExtraPhoto[] = Array.from(files).map((file) => ({
-      id: crypto.randomUUID(),
-      file,
-    }));
-    setExtraPhotos((prev) => [...prev, ...next]);
+    setExtraPhotos((prev) => {
+      const remaining = Math.max(0, MAX_EXTRA_PHOTOS - prev.length);
+      if (remaining === 0) return prev;
+      const next: ExtraPhoto[] = Array.from(files)
+        .slice(0, remaining)
+        .map((file) => ({
+          id: crypto.randomUUID(),
+          file,
+        }));
+      return [...prev, ...next];
+    });
   };
 
   const removeExtraPhoto = (id: string) => {
     setExtraPhotos((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const fillLocationFromGps = () => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setErrorMessage(t.addCar.gpsNotSupported[lang]);
+      return;
+    }
+    setErrorMessage(null);
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const res = await fetch(
+            `/api/reverse-geocode?lat=${encodeURIComponent(String(latitude))}&lon=${encodeURIComponent(String(longitude))}&lang=${encodeURIComponent(lang)}`,
+          );
+          const json = (await res.json()) as { label?: string };
+          setLocationText(
+            json.label?.trim() ||
+              `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`,
+          );
+        } catch {
+          setLocationText(
+            `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`,
+          );
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (err) => {
+        setIsLocating(false);
+        if (err.code === 1) {
+          setErrorMessage(t.addCar.gpsDenied[lang]);
+        } else {
+          setErrorMessage(t.addCar.gpsUnavailable[lang]);
+        }
+      },
+      { enableHighAccuracy: true, timeout: 15_000, maximumAge: 60_000 },
+    );
   };
 
   const setField = (name: string, value: string) => {
@@ -261,7 +330,7 @@ export default function AddACar() {
                 <button
                   type="button"
                   onClick={() => extraPhotosInputRef.current?.click()}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || extraPhotos.length >= MAX_EXTRA_PHOTOS}
                   className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
                 >
                   {t.addCar.additionalPhotos[lang]}
@@ -269,7 +338,7 @@ export default function AddACar() {
                 <span className="text-xs text-zinc-500 dark:text-zinc-500">
                   {extraPhotos.length === 0
                     ? t.addCar.additionalHint[lang]
-                    : `${extraPhotos.length} extra`}
+                    : `${extraPhotos.length}/${MAX_EXTRA_PHOTOS} extra`}
                 </span>
               </div>
               {extraPhotos.length > 0 ? (
@@ -305,14 +374,26 @@ export default function AddACar() {
                   <label htmlFor="locationText" className={labelClassName}>
                     {t.addCar.location[lang]}
                   </label>
-                  <input
-                    id="locationText"
-                    type="text"
-                    value={locationText}
-                    onChange={(e) => setLocationText(e.target.value)}
-                    placeholder="e.g. Algiers"
-                    className={inputClassName}
-                  />
+                  <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-stretch">
+                    <input
+                      id="locationText"
+                      type="text"
+                      value={locationText}
+                      onChange={(e) => setLocationText(e.target.value)}
+                      placeholder="e.g. Algiers"
+                      className={`${inputClassName} sm:mt-0 sm:min-w-0 sm:flex-1`}
+                    />
+                    <button
+                      type="button"
+                      onClick={fillLocationFromGps}
+                      disabled={isSubmitting || isLocating}
+                      className="shrink-0 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-900 transition-colors hover:bg-blue-100 disabled:opacity-60 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-100 dark:hover:bg-blue-950/70"
+                    >
+                      {isLocating
+                        ? t.addCar.locatingGps[lang]
+                        : t.addCar.useGpsLocation[lang]}
+                    </button>
+                  </div>
                 </div>
                 <div className="sm:col-span-2">
                   <label htmlFor="listingNotes" className={labelClassName}>

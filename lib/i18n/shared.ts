@@ -1,5 +1,8 @@
 export type Lang = "en" | "fr" | "ar";
 
+/** Fired on `window` when the user selects a language (`LanguageSelect`). Client pages can listen to stay in sync without a full reload. */
+export const LANG_CHANGE_EVENT = "carsdz-lang";
+
 export function isRtl(lang: Lang): boolean {
   return lang === "ar";
 }
@@ -72,6 +75,31 @@ export const t = {
       fr: "Lieu (optionnel)",
       ar: "الموقع (اختياري)",
     },
+    useGpsLocation: {
+      en: "Use my location (GPS)",
+      fr: "Utiliser ma position (GPS)",
+      ar: "استخدام موقعي (GPS)",
+    },
+    locatingGps: {
+      en: "Getting location…",
+      fr: "Localisation…",
+      ar: "جارٍ تحديد الموقع…",
+    },
+    gpsNotSupported: {
+      en: "Location is not supported in this browser.",
+      fr: "La géolocalisation n’est pas prise en charge.",
+      ar: "المتصفح لا يدعم تحديد الموقع.",
+    },
+    gpsDenied: {
+      en: "Location permission denied. Allow location access in your browser settings.",
+      fr: "Permission de localisation refusée. Autorisez l’accès dans les paramètres du navigateur.",
+      ar: "تم رفض إذن الموقع. اسمح بالوصول من إعدادات المتصفح.",
+    },
+    gpsUnavailable: {
+      en: "Could not read your position. Try again or enter the city manually.",
+      fr: "Impossible de lire votre position. Réessayez ou saisissez la ville.",
+      ar: "تعذّر قراءة موقعك. أعد المحاولة أو أدخل المدينة يدويًا.",
+    },
     notes: { en: "Notes (optional)", fr: "Notes (optionnel)", ar: "ملاحظات (اختياري)" },
     name: { en: "Name", fr: "Nom", ar: "الاسم" },
     status: { en: "Status", fr: "État", ar: "الحالة" },
@@ -87,6 +115,14 @@ export const t = {
     clear: { en: "Clear", fr: "Effacer", ar: "مسح" },
     add: { en: "Add car", fr: "Ajouter", ar: "إضافة" },
     saving: { en: "Saving…", fr: "Enregistrement…", ar: "جارٍ الحفظ…" },
+  },
+  aboutPage: {
+    title: { en: "About", fr: "À propos", ar: "حول" },
+    body: {
+      en: "Loto-dz is an Algerian page for buying and selling cars. Our goal is to make it easy to discover listings across Algeria, compare key details like price, mileage, year, fuel and transmission, and quickly reach out to the seller.\n\nYou can add a car with photos (including additional angles), browse the latest listings, and open a car page to see a full gallery and specifications. We focus on a clean, fast experience that works well on mobile and desktop.\n\nLoto-dz is built for the local market: prices in DZD, common trims and fuel types, and a simple workflow for posting and managing ads.",
+      fr: "Loto-dz est une page algérienne dédiée à l’achat et à la vente de voitures. Notre objectif est de faciliter la recherche d’annonces partout en Algérie, de comparer rapidement les informations essentielles (prix, kilométrage, année, carburant, boîte) et de contacter le vendeur sans friction.\n\nVous pouvez ajouter une voiture avec des photos (y compris plusieurs angles), parcourir les dernières annonces et ouvrir une fiche pour consulter la galerie et les caractéristiques complètes. Nous privilégions une expérience simple, rapide et agréable, sur mobile comme sur ordinateur.\n\nLoto-dz est pensé pour le marché local : prix en DZD, types de carburant courants et un processus clair pour publier et gérer vos annonces.",
+      ar: "Loto-dz صفحة جزائرية مخصّصة لشراء وبيع السيارات. هدفنا هو تسهيل اكتشاف الإعلانات عبر مختلف ولايات الجزائر، ومقارنة أهم التفاصيل مثل السعر، المسافة المقطوعة، السنة، نوع الوقود وناقل الحركة، ثم التواصل مع البائع بسرعة.\n\nيمكنك إضافة سيارة مع صور (بما في ذلك صور إضافية من زوايا مختلفة)، تصفّح أحدث الإعلانات، وفتح صفحة السيارة لرؤية معرض الصور والمواصفات كاملة. نركز على تجربة بسيطة وسريعة تعمل بشكل ممتاز على الهاتف والكمبيوتر.\n\nتم تصميم Loto-dz للسوق المحلي: الأسعار بالدينار الجزائري، الخيارات الشائعة، وخطوات واضحة لنشر الإعلانات وإدارتها.",
+    },
   },
 } as const;
 
