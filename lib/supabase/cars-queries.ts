@@ -16,6 +16,7 @@ type CarRow = {
   engine: string;
   doors: number | string;
   seats: number | string;
+  phone?: string | null;
 };
 
 function rowToCar(row: CarRow): Car {
@@ -34,6 +35,7 @@ function rowToCar(row: CarRow): Car {
     engine: row.engine,
     doors: Number(row.doors),
     seats: Number(row.seats),
+    phone: typeof row.phone === "string" ? row.phone : "",
   };
 }
 

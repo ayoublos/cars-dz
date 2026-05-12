@@ -14,6 +14,8 @@ export type Car = {
   engine: string;
   doors: number;
   seats: number;
+  /** Seller contact; optional in UI, stored as text (e.g. +213…). */
+  phone: string;
 };
 
 export function parseCarGallery(raw: unknown): string[] {

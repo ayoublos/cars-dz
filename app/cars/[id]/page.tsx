@@ -28,6 +28,11 @@ export default async function CarDetail({
   const car = await fetchCarById(numericId);
   if (!car) notFound();
 
+  const phoneDisplay = car.phone.trim();
+  const telDigits = phoneDisplay.replace(/[^\d+]/g, "");
+  const telHref =
+    phoneDisplay !== "" && telDigits.length > 0 ? `tel:${telDigits}` : undefined;
+
   return (
     <div className="flex flex-1 items-start justify-center bg-zinc-50 px-4 py-10 dark:bg-black">
       <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
@@ -86,6 +91,31 @@ export default async function CarDetail({
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className={`${specCardClasses()} sm:col-span-2`}>
+              <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                {t.carDetails.phone[lang]}
+              </p>
+              <p className="mt-2">
+                {phoneDisplay ? (
+                  telHref ? (
+                    <a
+                      href={telHref}
+                      className="text-lg font-semibold text-blue-700 underline-offset-2 hover:underline dark:text-blue-400"
+                    >
+                      {phoneDisplay}
+                    </a>
+                  ) : (
+                    <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                      {phoneDisplay}
+                    </span>
+                  )
+                ) : (
+                  <span className="text-lg text-zinc-500 dark:text-zinc-400">
+                    —
+                  </span>
+                )}
+              </p>
+            </div>
             <div className={specCardClasses()}>
               <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                 {t.carDetails.price[lang]}

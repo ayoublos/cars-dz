@@ -37,6 +37,7 @@ export function carFromFormData(formData: FormData): Omit<Car, "id"> {
       engine: stringField(formData, "engine"),
       doors: numberField(formData, "doors", 4),
       seats: numberField(formData, "seats", 5),
+      phone: stringField(formData, "phone"),
     };
   }
   export function userFromFormData(formData: FormData): Omit<User, "id"> {

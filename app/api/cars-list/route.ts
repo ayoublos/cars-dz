@@ -27,6 +27,7 @@ export async function POST(request: Request) {
       engine,
       doors,
       seats,
+      phone,
     } = body;
     const galleryUrls = Array.isArray(gallery)
       ? gallery.filter((u: unknown): u is string => typeof u === "string")
@@ -45,6 +46,7 @@ export async function POST(request: Request) {
       engine,
       doors: Number(doors),
       seats: Number(seats),
+      phone: typeof phone === "string" ? phone : "",
     });
     return Response.json({ car }, { status: 201 });
   } catch (e: unknown) {

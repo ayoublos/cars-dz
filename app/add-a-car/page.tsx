@@ -549,6 +549,20 @@ export default function AddACar() {
                 className={inputClassName}
               />
             </div>
+            <div className="sm:col-span-2">
+              <label htmlFor="phone" className={labelClassName}>
+                {t.addCar.phone[lang]}
+              </label>
+              <input
+                id="phone"
+                type="tel"
+                name="phone"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="+213 555 00 00 00"
+                className={inputClassName}
+              />
+            </div>
           </div>
 
           <div className="mt-8 flex flex-col-reverse gap-3 border-t border-zinc-200 pt-6 dark:border-zinc-800 sm:flex-row sm:justify-end">
