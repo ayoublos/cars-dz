@@ -9,7 +9,7 @@ import { z } from "zod";
 
 export const runtime = "nodejs";
 
-/** Caps Gemini usage for add-a-car photo analysis (override via env). */
+/** Caps vision-model output for add-a-car photo analysis (override via env). */
 function clampInt(value: number, min: number, max: number): number {
   if (!Number.isFinite(value)) return min;
   return Math.min(max, Math.max(min, Math.floor(value)));
@@ -31,9 +31,13 @@ const google = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_API_KEY ?? "",
 });
 
-/** Gemini 3 may wrap JSON or spend tokens on thinking — stabilize structured output. */
+/** Default Gemma 4 for vision + JSON; set GOOGLE_GEMMA_MODEL=gemini-3-flash-preview to use Gemini instead. */
+const photoModelId =
+  process.env.GOOGLE_GEMMA_MODEL ?? "gemma-4-26b-a4b-it";
+const useGeminiThinking = /^gemini/i.test(photoModelId);
+
 const geminiPhotoModel = wrapLanguageModel({
-  model: google("gemini-3-flash-preview"),
+  model: google(photoModelId),
   middleware: extractJsonMiddleware(),
 });
 
@@ -103,7 +107,9 @@ export async function POST(req: Request) {
       experimental_repairText: repairStructuredJson,
       providerOptions: {
         google: {
-          thinkingConfig: { thinkingBudget: 0 },
+          ...(useGeminiThinking
+            ? { thinkingConfig: { thinkingBudget: 0 } }
+            : {}),
           structuredOutputs: true,
         } satisfies GoogleLanguageModelOptions,
       },
@@ -132,7 +138,7 @@ export async function POST(req: Request) {
 
     return Response.json(object);
   } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Gemini request failed.";
+    const msg = e instanceof Error ? e.message : "Vision model request failed.";
     return Response.json({ error: msg }, { status: 500 });
   }
 }

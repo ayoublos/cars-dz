@@ -55,12 +55,22 @@ export const t = {
     },
     carPhoto: { en: "Car photo", fr: "Photo de la voiture", ar: "صورة السيارة" },
     coverHint: {
-      en: "Main photo becomes the listing cover after save. Use Auto-fill for Gemini hints.",
-      fr: "La photo principale devient la couverture après l’enregistrement. Utilisez Remplir auto pour des suggestions Gemini.",
-      ar: "تُصبح الصورة الرئيسية صورة الغلاف بعد الحفظ. استخدم الملء التلقائي لاقتراحات Gemini.",
+      en: "Cover after save. Auto-fill reads your photo (Gemma). Generate cover uses Gemma 4 for a prompt plus an image model for pixels — illustrative only; add a real photo when you can.",
+      fr: "Couverture après enregistrement. Remplir auto analyse votre photo (Gemma). Générer la couverture : Gemma 4 pour le prompt + modèle image — indicatif seulement ; ajoutez une vraie photo si possible.",
+      ar: "صورة الغلاف بعد الحفظ. الملء التلقائي يقرأ صورتك (Gemma). توليد الغلاف: Gemma 4 للوصف + نموذج صور — توضيحي فقط؛ أضف صورة حقيقية عند الإمكان.",
     },
     analyzing: { en: "Analyzing…", fr: "Analyse…", ar: "جارٍ التحليل…" },
     autofill: { en: "Auto-fill", fr: "Remplir auto", ar: "ملء تلقائي" },
+    generateCoverAi: {
+      en: "Generate cover (AI)",
+      fr: "Générer la couverture (IA)",
+      ar: "توليد صورة الغلاف (ذكاء اصطناعي)",
+    },
+    generatingCoverAi: {
+      en: "Generating image…",
+      fr: "Génération de l’image…",
+      ar: "جارٍ توليد الصورة…",
+    },
     additionalPhotos: {
       en: "Add additional photos",
       fr: "Ajouter des photos supplémentaires",

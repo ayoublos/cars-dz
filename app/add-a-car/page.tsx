@@ -41,6 +41,7 @@ export default function AddACar() {
   const [locationText, setLocationText] = useState("");
   const [listingNotes, setListingNotes] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isGeneratingCover, setIsGeneratingCover] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
@@ -161,6 +162,65 @@ export default function AddACar() {
     const el = form.elements.namedItem(name);
     if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
       el.value = value;
+    }
+  };
+
+  const readFormField = (name: string): string => {
+    const form = formRef.current;
+    if (!form) return "";
+    const el = form.elements.namedItem(name);
+    if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+      return el.value.trim();
+    }
+    return "";
+  };
+
+  const generateCoverFromAi = async () => {
+    setErrorMessage(null);
+    setIsGeneratingCover(true);
+    try {
+      const yearRaw = readFormField("year");
+      const yearNum = Number(yearRaw);
+      const res = await fetch("/api/car-cover-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: readFormField("name") || undefined,
+          color: readFormField("color") || undefined,
+          year: Number.isFinite(yearNum) ? yearNum : undefined,
+          fuel: readFormField("fuel") || undefined,
+          transmission: readFormField("transmission") || undefined,
+          engine: readFormField("engine") || undefined,
+          status: readFormField("status") || undefined,
+          extra:
+            [listingNotes.trim(), locationText.trim()].filter(Boolean).join(" | ") ||
+            undefined,
+        }),
+      });
+      const data = (await res.json()) as {
+        error?: string;
+        base64?: string;
+        mediaType?: string;
+      };
+      if (!res.ok) {
+        throw new Error(
+          typeof data.error === "string" ? data.error : "Image generation failed.",
+        );
+      }
+      const b64 = data.base64;
+      const mime = data.mediaType?.startsWith("image/") ? data.mediaType : "image/png";
+      if (!b64) throw new Error("No image in response.");
+      const blob = await fetch(`data:${mime};base64,${b64}`).then((r) => r.blob());
+      const file = new File([blob], `ai-cover-${Date.now()}.png`, {
+        type: mime,
+      });
+      setSelectedImage(file);
+    } catch (err: unknown) {
+      setErrorMessage(
+        err instanceof Error ? err.message : "Could not generate cover image.",
+      );
+    } finally {
+      setIsGeneratingCover(false);
     }
   };
 
@@ -304,14 +364,28 @@ export default function AddACar() {
                   {t.addCar.coverHint[lang]}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={analyzePhoto}
-                disabled={!selectedImage || isAnalyzing || isSubmitting}
-                className="h-10 shrink-0 rounded-md bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-              >
-                {isAnalyzing ? t.addCar.analyzing[lang] : t.addCar.autofill[lang]}
-              </button>
+              <div className="flex shrink-0 flex-col gap-2 sm:items-stretch">
+                <button
+                  type="button"
+                  onClick={analyzePhoto}
+                  disabled={
+                    !selectedImage || isAnalyzing || isGeneratingCover || isSubmitting
+                  }
+                  className="h-10 rounded-md bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                >
+                  {isAnalyzing ? t.addCar.analyzing[lang] : t.addCar.autofill[lang]}
+                </button>
+                <button
+                  type="button"
+                  onClick={generateCoverFromAi}
+                  disabled={isAnalyzing || isGeneratingCover || isSubmitting}
+                  className="h-10 rounded-md border border-violet-300 bg-violet-50 px-4 text-sm font-medium text-violet-900 hover:bg-violet-100 disabled:opacity-60 dark:border-violet-800 dark:bg-violet-950/50 dark:text-violet-100 dark:hover:bg-violet-950/80"
+                >
+                  {isGeneratingCover
+                    ? t.addCar.generatingCoverAi[lang]
+                    : t.addCar.generateCoverAi[lang]}
+                </button>
+              </div>
             </div>
 
             <div className="mt-5 border-t border-zinc-200 pt-4 dark:border-zinc-800">
