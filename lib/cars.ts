@@ -16,6 +16,8 @@ export type Car = {
   seats: number;
   /** Seller contact; optional in UI, stored as text (e.g. +213…). */
   phone: string;
+  /** `auth.users.id` when the listing was created while signed in; null for older rows. */
+  userId: string | null;
 };
 
 export function parseCarGallery(raw: unknown): string[] {

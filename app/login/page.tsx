@@ -1,8 +1,10 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { formatSupabaseOAuthStartError } from "@/lib/util/supabase-oauth-errors";
+import { safeInternalNextPath } from "@/lib/util/safe-internal-next";
 
 
 const inputClassName =
@@ -20,10 +22,43 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [postLoginPath, setPostLoginPath] = useState<string | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    setPostLoginPath(
+      safeInternalNextPath(
+        new URLSearchParams(window.location.search).get("next"),
+      ),
+    );
+  }, []);
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    let cancelled = false;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (cancelled || !data.session) return;
+      const next = safeInternalNextPath(
+        new URLSearchParams(window.location.search).get("next"),
+      );
+      router.replace(next ?? "/cars");
+      router.refresh();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   const canSubmit = useMemo(() => {
-    return email.trim() !== "" && password !== "" && !isSubmitting;
-  }, [email, password, isSubmitting]);
+    return (
+      email.trim() !== "" &&
+      password !== "" &&
+      !isSubmitting &&
+      !isGoogleLoading
+    );
+  }, [email, password, isSubmitting, isGoogleLoading]);
 
   const handleCredentialsSubmit = async (
     e: React.FormEvent<HTMLFormElement>,
@@ -53,7 +88,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/cars");
+      router.push(postLoginPath ?? "/cars");
       router.refresh();
     } catch (err: unknown) {
       const message =
@@ -157,26 +192,49 @@ export default function LoginPage() {
 
           <button
             type="button"
-            disabled={isSubmitting}
-            className="flex w-full items-center justify-center gap-3 rounded-md border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-800 transition-colors hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-900"
+            disabled={isSubmitting || isGoogleLoading}
+            className="flex w-full items-center justify-center gap-3 rounded-md border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-800 transition-colors hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 disabled:opacity-60 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-900"
             onClick={async () => {
+              setErrorMessage(null);
+              setIsGoogleLoading(true);
               try {
                 const supabase = getSupabaseBrowserClient();
-                await supabase.auth.signInWithOAuth({
+                const next = safeInternalNextPath(
+                  new URLSearchParams(window.location.search).get("next"),
+                );
+                const callbackUrl =
+                  next !== undefined
+                    ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
+                    : `${window.location.origin}/auth/callback`;
+                const { data, error } = await supabase.auth.signInWithOAuth({
                   provider: "google",
                   options: {
-                    redirectTo: `${window.location.origin}/auth/callback`,
+                    redirectTo: callbackUrl,
                   },
                 });
+                if (error) {
+                  setErrorMessage(
+                    formatSupabaseOAuthStartError(error.message),
+                  );
+                  setIsGoogleLoading(false);
+                  return;
+                }
+                if (data.url) {
+                  window.location.assign(data.url);
+                  return;
+                }
+                setErrorMessage("Could not start Google sign-in.");
+                setIsGoogleLoading(false);
               } catch (err) {
                 setErrorMessage(
                   err instanceof Error ? err.message : "Google sign-in failed.",
                 );
+                setIsGoogleLoading(false);
               }
             }}
           >
             <GoogleMark className="h-5 w-5 shrink-0" aria-hidden />
-            Continue with Google
+            {isGoogleLoading ? "Redirecting to Google…" : "Continue with Google"}
           </button>
         </div>
 

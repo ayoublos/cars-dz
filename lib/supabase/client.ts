@@ -11,7 +11,14 @@ export function getSupabaseBrowserClient(): SupabaseClient {
     );
   }
   if (!browserClient) {
-    browserClient = createClient(url, key);
+    browserClient = createClient(url, key, {
+      auth: {
+        flowType: "pkce",
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+      },
+    });
   }
   return browserClient;
 }

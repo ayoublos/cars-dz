@@ -1,5 +1,6 @@
-import Link from "next/link";
-import { carListingImageSrc, type Car } from "@/lib/cars";
+import CarsGrid from "@/components/cars/cars-grid";
+import type { Car } from "@/lib/cars";
+import { getLang } from "@/lib/i18n/server";
 import { fetchCars } from "@/lib/supabase/cars-queries";
 
 function filterCars(cars: readonly Car[], q: string) {
@@ -39,7 +40,8 @@ export default async function CarsPage({
 }: {
   searchParams?: SearchParamsInput;
 }) {
-const cars = await fetchCars();
+  const lang = await getLang();
+  const cars = await fetchCars();
   const q = await getQuery(searchParams);
   const filtered = filterCars(cars, q);
 
@@ -60,49 +62,7 @@ const cars = await fetchCars();
             No cars match your search. Try another keyword.
           </p>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((car) => (
-              <Link
-                key={car.id}
-                href={`/cars/${car.id}`}
-                className="group overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
-              >
-                <div className="aspect-[16/10] w-full bg-zinc-100 dark:bg-zinc-900">
-                  <img
-                    src={carListingImageSrc(car.image)}
-                    alt={car.name}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                  />
-                </div>
-
-                <div className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <h2 className="text-base font-semibold text-zinc-900 group-hover:text-zinc-700 dark:text-zinc-100 dark:group-hover:text-zinc-300">
-                      {car.name}
-                    </h2>
-                    <span className="shrink-0 rounded-full bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
-                      {car.status}
-                    </span>
-                  </div>
-
-                  <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                    {car.year} • {car.fuel} • {car.transmission}
-                  </p>
-
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                      {car.price.toLocaleString()} DZD
-                    </p>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-500">
-                      {car.mileage.toLocaleString()} km
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+          <CarsGrid cars={filtered} lang={lang} />
         )}
       </div>
     </div>

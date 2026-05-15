@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import OwnerDeleteCarButton from "@/components/cars/owner-delete-car-button";
 import { carListingImageSrc } from "@/lib/cars";
 import { t } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n/server";
@@ -216,6 +217,12 @@ export default async function CarDetail({
               </dl>
             </div>
           </div>
+
+          <OwnerDeleteCarButton
+            carId={car.id}
+            ownerUserId={car.userId}
+            lang={lang}
+          />
         </div>
       </div>
     </div>

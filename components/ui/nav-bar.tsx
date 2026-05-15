@@ -1,14 +1,14 @@
 import Link from "next/link";
 import LanguageSelect from "./language-select";
+import NavAddCarLink from "./nav-add-car-link";
+import NavAuth from "./nav-auth";
 import { t } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n/server";
 
 const NAV_ITEMS = [
   { href: "/", key: "home" },
-  { href: "/add-a-car", key: "addCar" },
   { href: "/contact", key: "contact" },
   { href: "/about", key: "about" },
-  { href: "/login", key: "login" },
 ] as const;
 
 const NAV_LINK_CLASSNAME =
@@ -46,6 +46,8 @@ export default async function NavBar() {
               {t.nav[item.key][lang]}
             </Link>
           ))}
+          <NavAddCarLink lang={lang} className={NAV_LINK_CLASSNAME} />
+          <NavAuth lang={lang} linkClassName={NAV_LINK_CLASSNAME} />
           <div className="ml-2 hidden sm:block">
             <div className="rounded-full border border-zinc-200 bg-white/80 px-3 py-1 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/60">
               <LanguageSelect value={lang} label={t.language[lang]} />

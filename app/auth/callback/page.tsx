@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { safeInternalNextPath } from "@/lib/util/safe-internal-next";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -13,7 +14,30 @@ export default function AuthCallbackPage() {
 
     async function run() {
       try {
+        if (typeof window !== "undefined") {
+          const params = new URLSearchParams(window.location.search);
+          const desc =
+            params.get("error_description")?.replace(/\+/g, " ") ?? "";
+          const code = params.get("error");
+          if (code || desc) {
+            if (!isActive) return;
+            setMessage(desc || code || "Sign-in was cancelled or failed.");
+            setTimeout(() => router.replace("/login"), 1200);
+            return;
+          }
+        }
+
         const supabase = getSupabaseBrowserClient();
+        // PKCE OAuth: exchange `code` in the URL for a session. Must finish
+        // before getSession(), otherwise we race the constructor’s async init.
+        const { error: initError } = await supabase.auth.initialize();
+        if (initError) {
+          if (!isActive) return;
+          setMessage(initError.message || "Sign-in failed.");
+          setTimeout(() => router.replace("/login"), 1200);
+          return;
+        }
+
         const { data, error } = await supabase.auth.getSession();
         if (error) throw error;
 
@@ -24,18 +48,23 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        router.replace("/cars");
+        const next = safeInternalNextPath(
+          typeof window !== "undefined"
+            ? new URLSearchParams(window.location.search).get("next")
+            : null,
+        );
+        router.replace(next ?? "/cars");
         router.refresh();
       } catch (err: unknown) {
         if (!isActive) return;
         setMessage(err instanceof Error ? err.message : "Sign-in failed.");
         setTimeout(() => {
           router.replace("/login");
-        }, 800);
+        }, 1200);
       }
     }
 
-    run();
+    void run();
     return () => {
       isActive = false;
     };
@@ -54,4 +83,3 @@ export default function AuthCallbackPage() {
     </div>
   );
 }
-

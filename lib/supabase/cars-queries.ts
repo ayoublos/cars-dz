@@ -17,6 +17,7 @@ type CarRow = {
   doors: number | string;
   seats: number | string;
   phone?: string | null;
+  user_id?: string | null;
 };
 
 function rowToCar(row: CarRow): Car {
@@ -36,6 +37,7 @@ function rowToCar(row: CarRow): Car {
     doors: Number(row.doors),
     seats: Number(row.seats),
     phone: typeof row.phone === "string" ? row.phone : "",
+    userId: typeof row.user_id === "string" && row.user_id ? row.user_id : null,
   };
 }
 
@@ -63,11 +65,16 @@ export async function fetchCarById(id: number): Promise<Car | null> {
   return rowToCar(data as CarRow);
 }
 
+export function toCarInsertRow(payload: Omit<Car, "id">) {
+  const { userId, ...rest } = payload;
+  return { ...rest, user_id: userId };
+}
+
 export async function insertCar(payload: Omit<Car, "id">): Promise<Car> {
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
     .from("cars")
-    .insert(payload)
+    .insert(toCarInsertRow(payload))
     .select()
     .single();
 

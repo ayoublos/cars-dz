@@ -13,7 +13,8 @@ export const t = {
     contact: { en: "Contact", fr: "Contact", ar: "اتصل بنا" },
     about: { en: "About", fr: "À propos", ar: "حول" },
     addCar: { en: "Add a Car", fr: "Ajouter une voiture", ar: "أضف سيارة" },
-    login: { en: "Login", fr: "Connexion", ar: "تسجيل الدخول" },
+    signIn: { en: "Sign in", fr: "Se connecter", ar: "تسجيل الدخول" },
+    logOut: { en: "Log out", fr: "Se déconnecter", ar: "تسجيل الخروج" },
   },
   language: { en: "Language", fr: "Langue", ar: "اللغة" },
   carDetails: {
@@ -37,6 +38,22 @@ export const t = {
     phone: { en: "Phone", fr: "Téléphone", ar: "الهاتف" },
     dzd: { en: "DZD", fr: "DZD", ar: "دج" },
     km: { en: "km", fr: "km", ar: "كم" },
+    deleteListing: {
+      en: "Delete listing",
+      fr: "Supprimer l’annonce",
+      ar: "حذف الإعلان",
+    },
+    deleteConfirm: {
+      en: "Delete this listing permanently? This cannot be undone.",
+      fr: "Supprimer définitivement cette annonce ? Cette action est irréversible.",
+      ar: "حذف هذا الإعلان نهائيًا؟ لا يمكن التراجع عن ذلك.",
+    },
+    deleting: { en: "Deleting…", fr: "Suppression…", ar: "جارٍ الحذف…" },
+    deleteFailed: {
+      en: "Could not delete this listing.",
+      fr: "Impossible de supprimer l’annonce.",
+      ar: "تعذّر حذف الإعلان.",
+    },
   },
   home: {
     searchPlaceholder: {
@@ -49,9 +66,9 @@ export const t = {
   addCar: {
     title: { en: "Add a car", fr: "Ajouter une voiture", ar: "أضف سيارة" },
     subtitle: {
-      en: "Saved to your Supabase cars table (requires RLS policies for anon insert).",
-      fr: "Enregistré dans la table Supabase cars (nécessite des politiques RLS pour l’insertion anonyme).",
-      ar: "يتم الحفظ في جدول Supabase cars (يتطلب سياسات RLS للسماح بالإضافة للمستخدم المجهول).",
+      en: "Signed-in users only. Listings are saved to Supabase with your account so you can remove them later (run the cars user_id migration + RLS in Supabase).",
+      fr: "Réservé aux utilisateurs connectés. Les annonces sont enregistrées avec votre compte pour pouvoir les supprimer plus tard (migration user_id + RLS dans Supabase).",
+      ar: "للمستخدمين المسجلين فقط. تُحفظ الإعلانات مع حسابك لتتمكن من حذفها لاحقًا (نفّذ migration user_id وRLS في Supabase).",
     },
     carPhoto: { en: "Car photo", fr: "Photo de la voiture", ar: "صورة السيارة" },
     coverHint: {
@@ -131,6 +148,26 @@ export const t = {
     clear: { en: "Clear", fr: "Effacer", ar: "مسح" },
     add: { en: "Add car", fr: "Ajouter", ar: "إضافة" },
     saving: { en: "Saving…", fr: "Enregistrement…", ar: "جارٍ الحفظ…" },
+    signInRequiredTitle: {
+      en: "Sign in to add a car",
+      fr: "Connectez-vous pour ajouter une voiture",
+      ar: "سجّل الدخول لإضافة سيارة",
+    },
+    signInRequiredBody: {
+      en: "Posting is available once you are signed in. You can remove listings you created from the car page or the listings grid.",
+      fr: "La publication est disponible une fois connecté. Vous pouvez supprimer vos annonces depuis la fiche ou la grille.",
+      ar: "النشر متاح بعد تسجيل الدخول. يمكنك حذف إعلاناتك من صفحة السيارة أو من القائمة.",
+    },
+    goToSignIn: {
+      en: "Go to sign in",
+      fr: "Aller à la connexion",
+      ar: "الذهاب لتسجيل الدخول",
+    },
+    checkingSession: {
+      en: "Checking sign-in…",
+      fr: "Vérification de la connexion…",
+      ar: "جارٍ التحقق من الجلسة…",
+    },
   },
   aboutPage: {
     title: { en: "About", fr: "À propos", ar: "حول" },

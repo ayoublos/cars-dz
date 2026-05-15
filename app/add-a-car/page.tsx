@@ -1,11 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import type { Session } from "@supabase/supabase-js";
 import type { Car } from "@/lib/cars";
 import type { Lang } from "@/lib/i18n";
 import { LANG_CHANGE_EVENT, t } from "@/lib/i18n";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { toCarInsertRow } from "@/lib/supabase/cars-queries";
 import { uploadCarListingImage } from "@/lib/supabase/car-images";
 import { carFromFormData } from "@/lib/util/mapper";
 
@@ -17,7 +20,11 @@ const labelClassName =
 
 async function insertCarRow(car: Omit<Car, "id">) {
   const supabase = getSupabaseBrowserClient();
-  const { error } = await supabase.from("cars").insert(car).select().single();
+  const { error } = await supabase
+    .from("cars")
+    .insert(toCarInsertRow(car))
+    .select()
+    .single();
 
   if (error) throw error;
 }
@@ -45,6 +52,9 @@ export default function AddACar() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [session, setSession] = useState<Session | null | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     function readLangFromBrowser(): Lang {
@@ -74,6 +84,23 @@ export default function AddACar() {
     return () => {
       window.removeEventListener(LANG_CHANGE_EVENT, onLangPicked);
       window.removeEventListener("popstate", onPopState);
+    };
+  }, []);
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    let cancelled = false;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (!cancelled) setSession(data.session ?? null);
+    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+    });
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
     };
   }, []);
 
@@ -275,8 +302,17 @@ export default function AddACar() {
     setErrorMessage(null);
     setIsSubmitting(true);
     try {
-      const formData = new FormData(e.target as HTMLFormElement);
       const supabase = getSupabaseBrowserClient();
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+      const user = sessionData.session?.user;
+      if (!user) {
+        setErrorMessage(t.addCar.signInRequiredBody[lang]);
+        return;
+      }
+
+      const formData = new FormData(e.target as HTMLFormElement);
       const base = carFromFormData(formData);
 
       let coverUrl = base.image.trim();
@@ -293,6 +329,7 @@ export default function AddACar() {
         ...base,
         image: coverUrl,
         gallery: galleryUrls,
+        userId: user.id,
       });
       router.push("/cars");
       router.refresh();
@@ -333,6 +370,26 @@ export default function AddACar() {
           </div>
         ) : null}
 
+        {session === undefined ? (
+          <p className="rounded-2xl border border-zinc-200 bg-white px-6 py-10 text-center text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
+            {t.addCar.checkingSession[lang]}
+          </p>
+        ) : session === null ? (
+          <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-950 sm:p-10">
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+              {t.addCar.signInRequiredTitle[lang]}
+            </h2>
+            <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+              {t.addCar.signInRequiredBody[lang]}
+            </p>
+            <Link
+              href={`/login?next=${encodeURIComponent("/add-a-car")}`}
+              className="mt-6 inline-flex rounded-md bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            >
+              {t.addCar.goToSignIn[lang]}
+            </Link>
+          </div>
+        ) : (
         <form
           ref={formRef}
           onSubmit={handleSubmit}
@@ -656,6 +713,7 @@ export default function AddACar() {
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );
