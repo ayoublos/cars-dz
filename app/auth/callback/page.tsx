@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { safeInternalNextPath } from "@/lib/util/safe-internal-next";
+import { formatSupabaseOAuthStartError } from "@/lib/util/supabase-oauth-errors";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -21,7 +22,11 @@ export default function AuthCallbackPage() {
           const code = params.get("error");
           if (code || desc) {
             if (!isActive) return;
-            setMessage(desc || code || "Sign-in was cancelled or failed.");
+            setMessage(
+              desc
+                ? formatSupabaseOAuthStartError(desc)
+                : code || "Sign-in was cancelled or failed.",
+            );
             setTimeout(() => router.replace("/login"), 1200);
             return;
           }

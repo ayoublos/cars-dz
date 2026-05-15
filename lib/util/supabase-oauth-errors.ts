@@ -1,6 +1,13 @@
 /** User-facing text when Supabase rejects OAuth (e.g. provider disabled in dashboard). */
 export function formatSupabaseOAuthStartError(message: string): string {
   const m = message.toLowerCase();
+  if (m.includes("redirect_uri_mismatch")) {
+    return [
+      "Google redirect URI mismatch.",
+      "In Google Cloud → your Web OAuth client → Authorized redirect URIs, add exactly the Supabase callback URL (Authentication → Providers → Google in Supabase), e.g. https://YOUR_REF.supabase.co/auth/v1/callback — not http://localhost:3000/auth/callback.",
+      "In Supabase → Authentication → URL Configuration → Redirect URLs, add http://localhost:3000/auth/callback (and your production /auth/callback).",
+    ].join(" ");
+  }
   if (
     m.includes("provider is not enabled") ||
     m.includes("unsupported provider")
