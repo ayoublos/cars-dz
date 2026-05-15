@@ -12,11 +12,13 @@ export default function OwnerDeleteCarButton({
   ownerUserId,
   lang,
   compact = false,
+  omitSectionWrapper = false,
 }: {
   carId: number;
   ownerUserId: string | null;
   lang: Lang;
   compact?: boolean;
+  omitSectionWrapper?: boolean;
 }) {
   const router = useRouter();
   const [session, setSession] = useState<Session | null | undefined>(
@@ -70,7 +72,7 @@ export default function OwnerDeleteCarButton({
 
   const buttonClass = compact
     ? "absolute right-2 top-2 z-10 rounded-full border border-red-200 bg-white/95 px-2.5 py-1 text-xs font-semibold text-red-700 shadow-sm backdrop-blur hover:bg-red-50 disabled:opacity-60 dark:border-red-900/60 dark:bg-zinc-950/95 dark:text-red-300 dark:hover:bg-red-950/40"
-    : "w-full rounded-md border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-800 transition-colors hover:bg-red-100 disabled:opacity-60 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-200 dark:hover:bg-red-950/50";
+    : "w-full flex-1 rounded-md border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-800 transition-colors hover:bg-red-100 disabled:opacity-60 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-200 dark:hover:bg-red-950/50";
 
   const label = busy ? t.carDetails.deleting[lang] : t.carDetails.deleteListing[lang];
 
@@ -101,6 +103,19 @@ export default function OwnerDeleteCarButton({
         ) : null}
         {button}
       </>
+    );
+  }
+
+  if (omitSectionWrapper) {
+    return (
+      <div className="min-w-0 flex-1">
+        {errorMessage ? (
+          <p className="mb-3 text-sm text-red-600 dark:text-red-400" role="alert">
+            {errorMessage}
+          </p>
+        ) : null}
+        {button}
+      </div>
     );
   }
 

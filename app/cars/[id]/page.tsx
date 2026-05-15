@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import OwnerDeleteCarButton from "@/components/cars/owner-delete-car-button";
+import OwnerEditCarLink from "@/components/cars/owner-edit-car-link";
+import CarLocationTagBadge from "@/components/cars/car-location-tag";
 import { carListingImageSrc } from "@/lib/cars";
 import { t } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n/server";
@@ -46,6 +48,15 @@ export default async function CarDetail({
             referrerPolicy="no-referrer"
           />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/0 to-black/0" />
+          {car.locationTag ? (
+            <div className="absolute left-4 top-4 z-10">
+              <CarLocationTagBadge
+                tag={car.locationTag}
+                lang={lang}
+                variant="detail"
+              />
+            </div>
+          ) : null}
           <div className="absolute bottom-4 left-4 right-4 flex flex-wrap items-end justify-between gap-3">
             <div className="min-w-0">
               <p className="text-xs font-medium uppercase tracking-wide text-white/80">
@@ -218,11 +229,21 @@ export default async function CarDetail({
             </div>
           </div>
 
-          <OwnerDeleteCarButton
-            carId={car.id}
-            ownerUserId={car.userId}
-            lang={lang}
-          />
+          <div className="mt-6 border-t border-zinc-200 pt-6 dark:border-zinc-800">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
+              <OwnerEditCarLink
+                carId={car.id}
+                ownerUserId={car.userId}
+                lang={lang}
+              />
+              <OwnerDeleteCarButton
+                carId={car.id}
+                ownerUserId={car.userId}
+                lang={lang}
+                omitSectionWrapper
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>

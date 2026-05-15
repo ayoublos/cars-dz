@@ -54,6 +54,21 @@ export const t = {
       fr: "Impossible de supprimer l’annonce.",
       ar: "تعذّر حذف الإعلان.",
     },
+    editListing: {
+      en: "Update listing",
+      fr: "Modifier l’annonce",
+      ar: "تحديث الإعلان",
+    },
+    locationInKorea: {
+      en: "Currently in Korea",
+      fr: "Actuellement en Corée",
+      ar: "حاليًا في كوريا",
+    },
+    locationAbroad: {
+      en: "Currently abroad",
+      fr: "Actuellement à l’étranger",
+      ar: "حاليًا في بلد آخر",
+    },
   },
   home: {
     searchPlaceholder: {
@@ -62,6 +77,42 @@ export const t = {
       ar: "ابحث عن سيارات…",
     },
     searchButton: { en: "Search", fr: "Rechercher", ar: "بحث" },
+    filterLocation: {
+      en: "Location",
+      fr: "Localisation",
+      ar: "الموقع",
+    },
+    filterAll: { en: "All", fr: "Toutes", ar: "الكل" },
+    filterNoLocationTag: {
+      en: "No location tag",
+      fr: "Sans étiquette",
+      ar: "بدون موقع",
+    },
+    noResults: {
+      en: "No cars match your filters. Try another keyword or location.",
+      fr: "Aucune annonce ne correspond. Essayez un autre mot-clé ou une autre localisation.",
+      ar: "لا توجد سيارات مطابقة. جرّب كلمة أخرى أو موقعًا آخر.",
+    },
+    filtersTitle: {
+      en: "Refine listings",
+      fr: "Affiner les annonces",
+      ar: "تصفية الإعلانات",
+    },
+    filtersSubtitle: {
+      en: "Filter by specs, price, mileage, and where the car is now.",
+      fr: "Filtrez par caractéristiques, prix, kilométrage et localisation.",
+      ar: "صفِّ حسب المواصفات والسعر والمسافة والموقع الحالي.",
+    },
+    filtersApply: { en: "Apply filters", fr: "Appliquer", ar: "تطبيق التصفية" },
+    filtersClear: { en: "Clear all filters", fr: "Effacer les filtres", ar: "مسح كل التصفيات" },
+    filtersExpand: { en: "Show filters", fr: "Afficher", ar: "إظهار" },
+    filtersCollapse: { en: "Hide filters", fr: "Masquer", ar: "إخفاء" },
+    filtersResults: { en: "listings", fr: "annonces", ar: "إعلان" },
+    filterYearFrom: { en: "Year from", fr: "Année min.", ar: "من سنة" },
+    filterYearTo: { en: "Year to", fr: "Année max.", ar: "إلى سنة" },
+    filterPriceMin: { en: "Min price (DZD)", fr: "Prix min (DZD)", ar: "أقل سعر (دج)" },
+    filterPriceMax: { en: "Max price (DZD)", fr: "Prix max (DZD)", ar: "أعلى سعر (دج)" },
+    filterMileageMax: { en: "Max mileage (km)", fr: "Km max", ar: "أقصى مسافة (كم)" },
   },
   addCar: {
     title: { en: "Add a car", fr: "Ajouter une voiture", ar: "أضف سيارة" },
@@ -131,6 +182,21 @@ export const t = {
     notes: { en: "Notes (optional)", fr: "Notes (optionnel)", ar: "ملاحظات (اختياري)" },
     name: { en: "Name", fr: "Nom", ar: "الاسم" },
     status: { en: "Status", fr: "État", ar: "الحالة" },
+    locationTag: {
+      en: "Vehicle location",
+      fr: "Localisation du véhicule",
+      ar: "موقع السيارة",
+    },
+    locationTagHint: {
+      en: "Shown on listing cards on the home page.",
+      fr: "Affiché sur les cartes de la page d’accueil.",
+      ar: "يظهر على بطاقات الإعلان في الصفحة الرئيسية.",
+    },
+    locationTagNone: {
+      en: "No tag",
+      fr: "Aucun",
+      ar: "بدون",
+    },
     color: { en: "Color", fr: "Couleur", ar: "اللون" },
     price: { en: "Price (DZD)", fr: "Prix (DZD)", ar: "السعر (دج)" },
     mileage: { en: "Mileage (km)", fr: "Kilométrage (km)", ar: "المسافة (كم)" },
@@ -167,6 +233,30 @@ export const t = {
       en: "Checking sign-in…",
       fr: "Vérification de la connexion…",
       ar: "جارٍ التحقق من الجلسة…",
+    },
+  },
+  editCar: {
+    title: { en: "Update listing", fr: "Modifier l’annonce", ar: "تحديث الإعلان" },
+    subtitle: {
+      en: "Change the fields buyers see. Upload a new cover or extra photos if needed.",
+      fr: "Modifiez les champs visibles. Envoyez une nouvelle couverture ou des photos si besoin.",
+      ar: "عدّل الحقول الظاهرة للمشترين. ارفع غلافًا أو صورًا إضافية عند الحاجة.",
+    },
+    save: { en: "Save changes", fr: "Enregistrer", ar: "حفظ التغييرات" },
+    notOwner: {
+      en: "You can only update listings created with your account.",
+      fr: "Vous ne pouvez modifier que vos annonces.",
+      ar: "يمكنك تحديث إعلاناتك فقط.",
+    },
+    backToListing: {
+      en: "Back to car page",
+      fr: "Retour à la fiche",
+      ar: "العودة لصفحة السيارة",
+    },
+    updateFailed: {
+      en: "Could not save changes.",
+      fr: "Impossible d’enregistrer les modifications.",
+      ar: "تعذّر حفظ التعديلات.",
     },
   },
   aboutPage: {

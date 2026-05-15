@@ -6,9 +6,11 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 function SearchForm({
   placeholder,
   buttonLabel,
+  listingBasePath,
 }: {
   placeholder: string;
   buttonLabel: string;
+  listingBasePath: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -21,10 +23,14 @@ function SearchForm({
   const onSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
+      const params = new URLSearchParams(searchParams.toString());
       const q = query.trim();
-      router.push(q ? `/cars?q=${encodeURIComponent(q)}` : "/cars");
+      if (q) params.set("q", q);
+      else params.delete("q");
+      const qs = params.toString();
+      router.push(qs ? `${listingBasePath}?${qs}` : listingBasePath);
     },
-    [query, router],
+    [query, router, listingBasePath, searchParams],
   );
 
   return (
@@ -57,9 +63,12 @@ function SearchForm({
 export default function Search({
   placeholder = "Search cars…",
   buttonLabel = "Search",
+  listingBasePath = "/cars",
 }: {
   placeholder?: string;
   buttonLabel?: string;
+  /** Where search results live (`/` on home, `/cars` on cars page). */
+  listingBasePath?: string;
 }) {
   return (
     <Suspense
@@ -69,7 +78,11 @@ export default function Search({
         </div>
       }
     >
-      <SearchForm placeholder={placeholder} buttonLabel={buttonLabel} />
+      <SearchForm
+        placeholder={placeholder}
+        buttonLabel={buttonLabel}
+        listingBasePath={listingBasePath}
+      />
     </Suspense>
   );
 }

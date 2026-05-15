@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { Car } from "@/lib/cars";
 import type { Lang } from "@/lib/i18n";
 import { carListingImageSrc } from "@/lib/cars";
+import CarLocationTagBadge from "@/components/cars/car-location-tag";
 import OwnerDeleteCarButton from "@/components/cars/owner-delete-car-button";
 
 export default function CarListingCard({
@@ -25,7 +26,7 @@ export default function CarListingCard({
         href={`/cars/${car.id}`}
         className="block transition group-hover:opacity-[0.99]"
       >
-        <div className="aspect-[16/10] w-full bg-zinc-100 dark:bg-zinc-900">
+        <div className="relative aspect-[16/10] w-full bg-zinc-100 dark:bg-zinc-900">
           <img
             src={carListingImageSrc(car.image)}
             alt={car.name}
@@ -33,6 +34,15 @@ export default function CarListingCard({
             loading="lazy"
             referrerPolicy="no-referrer"
           />
+          {car.locationTag ? (
+            <div className="absolute left-2 top-2 z-[1] max-w-[calc(100%-1rem)]">
+              <CarLocationTagBadge
+                tag={car.locationTag}
+                lang={lang}
+                variant="card"
+              />
+            </div>
+          ) : null}
         </div>
 
         <div className="p-4">

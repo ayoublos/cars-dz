@@ -1,5 +1,5 @@
 import { User } from "../supabase/users-queries";
-import { Car } from "../cars";
+import { Car, parseCarLocationTag } from "../cars";
 
 
 export function UserFromFormData(formData: FormData): Omit<User, "id"> {
@@ -26,6 +26,7 @@ export function carFromFormData(formData: FormData): Omit<Car, "id"> {
     return {
       name: stringField(formData, "name"),
       status: stringField(formData, "status"),
+      locationTag: parseCarLocationTag(stringField(formData, "locationTag")),
       color: stringField(formData, "color"),
       image: stringField(formData, "image"),
       gallery: [],

@@ -1,7 +1,16 @@
+/** Shown on cards: vehicle currently in Korea vs another country. */
+export type CarLocationTag = "korea" | "abroad" | "";
+
+export function parseCarLocationTag(raw: unknown): CarLocationTag {
+  if (raw === "korea" || raw === "abroad") return raw;
+  return "";
+}
+
 export type Car = {
   id: number;
   name: string;
   status: string;
+  locationTag: CarLocationTag;
   color: string;
   image: string;
   /** Extra photo URLs (cover uses `image`). */

@@ -10,6 +10,7 @@ import { LANG_CHANGE_EVENT, t } from "@/lib/i18n";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { toCarInsertRow } from "@/lib/supabase/cars-queries";
 import { uploadCarListingImage } from "@/lib/supabase/car-images";
+import CarLocationTagField from "@/components/cars/car-location-tag-field";
 import { carFromFormData } from "@/lib/util/mapper";
 
 const inputClassName =
@@ -299,6 +300,7 @@ export default function AddACar() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const form = e.currentTarget;
     setErrorMessage(null);
     setIsSubmitting(true);
     try {
@@ -312,7 +314,7 @@ export default function AddACar() {
         return;
       }
 
-      const formData = new FormData(e.target as HTMLFormElement);
+      const formData = new FormData(form);
       const base = carFromFormData(formData);
 
       let coverUrl = base.image.trim();
@@ -567,6 +569,7 @@ export default function AddACar() {
                 className={inputClassName}
               />
             </div>
+            <CarLocationTagField lang={lang} />
             <div>
               <label htmlFor="color" className={labelClassName}>
                 {t.addCar.color[lang]}
